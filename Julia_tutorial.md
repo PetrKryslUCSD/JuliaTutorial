@@ -90,6 +90,7 @@ function Poisson_on_triangle_mesh()
     return Error
 end
 @time Poisson_on_triangle_mesh()
+@time Poisson_on_triangle_mesh()
 ```
 
 Depending on the computer (CPU, RAM) the function may run in around 10
@@ -97,9 +98,11 @@ seconds. So we can process 2 million triangles, 1 million degrees of freedom,
 heat conduction problem in roughly 10 seconds. Clearly the code must run near
 FORTRAN or C-language speed.
 
-Now we switch to the environment for remainder of the tutorial.
+Now we switch to the environment for the remainder of the tutorial.
 
 ```julia
+cd("..")
+using Pkg
 Pkg.activate(".")
 Pkg.instantiate()
 ```
@@ -359,8 +362,8 @@ x
 ```
 
 Defining "functions" with the same name produces methods for the function.
-Methods are differentiated based on the types of their arguments. We will talk
-about  methods later.
+Methods are differentiated based on the types of their arguments. We have
+mentioned methods above, and we will talk more about  methods later.
 
 ## Operators are functions
 
@@ -402,10 +405,6 @@ f(; x, y) = y, x, y
 f(y = 1, x = 2)
 ```
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 2
 
 ## Multi-dimensional Arrays
@@ -515,10 +514,6 @@ b = [2.0 4.0]
 a .* b
 ```
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 3
 
 ## Types
@@ -643,10 +638,6 @@ typeof(1)<:Number
 typeof(1)<:Any
 ```
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 4
 
 ## Types: continued
@@ -709,10 +700,6 @@ is impossible to distinguish between the original object and a copy. Small
 immutable object are typically passed on the stack; immutable object rather
 live on the heap.
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 5
 
 ## Types: continued
@@ -791,10 +778,6 @@ When the function `smallestx` is called with different types, it gets compiled
 for each new type anew. The result is a collection of *methods* defined for
 this function. More about this later.
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 6
 
 ## Methods
@@ -854,10 +837,6 @@ g(5.13, 7)
 g(7, 5.13)
 ```
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 7
 
 ## Methods: continued
@@ -885,10 +864,6 @@ e([1.0, 1.0, -1.0])
 e([0.0, 1.0, -1.0])
 ```
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 8
 
 ## Interfaces
@@ -914,10 +889,6 @@ end
 Define methods `size`, `getindex`, `setindex!`. Plus perhaps some optional
 methods.
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 9
 
 ## Modules
@@ -1003,10 +974,6 @@ x / norm(x)
 dot(x, x)
 ```
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 10
 
 ## Meta-programming
@@ -1049,10 +1016,6 @@ Macros execute when code is parsed, and therefore, macros allow the programmer
 to generate and include fragments of customized code before the full program
 is run.
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 11
 
 ## Interoperability with the C language
@@ -1075,10 +1038,6 @@ c = ccall(dlsym(mycoslib, :mycos), Cdouble, (Cdouble,), x)
 @show c, cos(x)
 ```
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 12
 
 ## Linear algebra
@@ -1122,7 +1081,8 @@ A = [1.0, 2.0, 3.0]
 A.^2
 B = [1.0, 2.0, 3.0]
 C = similar(B)
-@. C = sin(A.^2) + cos(3*B)
+@. C = sin(A^2) + cos(3*B)
+@btime @. $C = sin($A^2) + cos(3*$B)
 ```
 
 With the "dot" notation, views are also employed to carry out assignment in
@@ -1134,10 +1094,6 @@ X = fill(0.0, length(Y) + 1)
 X[2:end] .= sin.(Y)
 ```
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 13
 
 ## Sparse matrix algebra (SparseArrays)
@@ -1177,10 +1133,6 @@ There are iterative solvers available, for instance
 
 Eigenvalue solvers include `eigs`from [Arpack](https://github.com/JuliaLinearAlgebra/Arpack.jl).
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 14
 
 ## Plotting
@@ -1230,10 +1182,6 @@ using PGFPlotsX
 display(p)
 ```
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 15
 
 ## Input, output
@@ -1243,10 +1191,6 @@ quite developed and integrated into [statistical-exploration
 packages](https://www.youtube.com/watch?v=OFPNph-WxLM). Scientific data
 formats include HDF5, VTK graphics files and more.
 
-#############################################################################
-#############################################################################
-#############################################################################
-#############################################################################
 # Introduction to Julia for FEM programmers 16
 
 ## Parallel computing
