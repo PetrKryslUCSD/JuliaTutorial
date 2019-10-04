@@ -84,6 +84,11 @@ function Poisson_on_triangle_mesh()
 end
 @time Poisson_on_triangle_mesh()
 
+# Depending on the computer (CPU, RAM) the function may run in around 10
+# seconds. So we can process 2 million triangles, 1 million degrees of freedom,
+# heat conduction problem in roughly 10 seconds. Clearly the code must run near
+# FORTRAN or C-language speed.
+
 # Now we switch to the environment for remainder of the tutorial.
 Pkg.activate(".")
 Pkg.instantiate()
