@@ -806,8 +806,6 @@ x = rand(3)
 x / norm(x)
 dot(x, x)
 
-
-
 # # Introduction to Julia for FEM programmers 10
 
 # ## Meta-programming
