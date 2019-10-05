@@ -12,17 +12,9 @@
 # ## Quick preview
 
 # The Julia command line introduces a programming environment.
-# This doesn't work for some reason. <<<
-# using Pkg
-# Pkg.add(PackageSpec(url="https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl"))
-# Pkg.activate("FinEtoolsHeatDiff")
-# Pkg.instantiate()
-# >>>
-
 using Pkg
-run(`git clone https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl`)
-cd("./FinEtoolsHeatDiff.jl")
-Pkg.activate(".")
+Pkg.develop(PackageSpec(url="https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl"))
+Pkg.activate("FinEtoolsHeatDiff")
 Pkg.instantiate()
 
 # The functionality is divided into modules. Here we engage some packages
@@ -30,6 +22,7 @@ Pkg.instantiate()
 using FinEtools
 using FinEtools.MeshExportModule
 using FinEtoolsHeatDiff
+using BenchmarkTools
 
 # The basic building block  is a function.
 function Poisson_on_triangle_mesh()
@@ -41,10 +34,10 @@ function Poisson_on_triangle_mesh()
     N = 1000;# number of subdivisions along the sides of the square domain
     tolerance = 1.0/N/100.0
 
-    fens,fes =T3block(A, A, N, N)
+    fens, fes = T3block(A, A, N, N)
 
     geom = NodalField(fens.xyz)
-    Temp = NodalField(zeros(size(fens.xyz,1),1))
+    Temp = NodalField(zeros(size(fens.xyz,1), 1))
 
     l1 = selectnode(fens; box=[0. 0. 0. A], inflate = tolerance)
     l2 = selectnode(fens; box=[A A 0. A], inflate = tolerance)
@@ -54,7 +47,6 @@ function Poisson_on_triangle_mesh()
     setebc!(Temp, List, true, 1, tempf(geom.values[List,:])[:])
     applyebc!(Temp)
     numberdofs!(Temp)
-    @show count(fes), count(fens)
 
     material = MatHeatDiff(thermal_conductivity)
     femm = FEMMHeatDiff(IntegDomain(fes, TriRule(1)), material)
@@ -66,7 +58,7 @@ function Poisson_on_triangle_mesh()
     F1 = distribloads(FEMMBase(IntegDomain(fes, TriRule(1))), geom, Temp, fi, 3);
 
     U = K\(F1+F2)
-    scattersysvec!(Temp,U[:])
+    scattersysvec!(Temp, U[:])
 
     Error = 0.0
     for k in 1:size(fens.xyz,1)
@@ -82,8 +74,7 @@ function Poisson_on_triangle_mesh()
 
     return Error
 end
-@time Poisson_on_triangle_mesh()
-@time Poisson_on_triangle_mesh()
+@btime Poisson_on_triangle_mesh()
 
 # Depending on the computer (CPU, RAM) the function may run in around 10
 # seconds. So we can process 2 million triangles, 1 million degrees of freedom,
@@ -815,7 +806,7 @@ dot(x, x)
 
 Examples of macros:
 
-@show ( 1 + 1)
+@show (1 + 1)
 
 x = 0
 @assert x == 1
@@ -930,7 +921,7 @@ using SparseArrays
 A = sparse([1, 2, 3, 3, 4, 3, 5], [1, 2, 2, 4, 4, 3, 5], Float32[3, 4, 2, 4, -3, 5, 1], 5, 5)
 
 using UnicodePlots
-Pl = spy(A)
+Pl = UnicodePlots.spy(A)
 display(Pl)
 
 # Solvers include direct factorizations, with high-performance solvers such as
