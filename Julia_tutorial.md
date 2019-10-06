@@ -1272,7 +1272,7 @@ clamp(a) = begin
 	end
 end
 N = 10_000_000
-a = rand(N)
+a = rand(N);
 using BenchmarkTools
 @btime clamp($a)
 
