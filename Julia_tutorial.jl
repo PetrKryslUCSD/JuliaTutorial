@@ -149,7 +149,7 @@ a = 1.9
 using BenchmarkTools
 using LinearAlgebra
 @btime @. $y = $a * $x + $y
-@btime $y = BLAS.axpy!($a,$x,$y)
+@btime $y = BLAS.axpy!($a, $x, $y)
 @btime $y = saxpy!($a, $x, $y)
 
 # Arbitrary-precision numerics.
@@ -468,6 +468,11 @@ F(3.3)
 # - Only values have types, variables are just names.
 a = 3
 typeof(a)
+a = 310.0
+typeof(a)
+# This doesn't mean that `a` changed type, it just points to a value of a
+# different type.
+
 # - All values have types, and all types are on equal footing (first class).
 typeof(5), typeof(5//3)
 # - Abstract types are declared as such and no values of these types can exist.
@@ -476,13 +481,16 @@ T1()
 # - Type that is not abstract is concrete.
 isconcretetype(typeof(1_000))
 isconcretetype(Number)
-# - Abstract types can be subtyped.
+# - Abstract types can be subtyped. This type is concrete, and hence the value
+# of this type can exist.
 struct CT1 <: T1 end
 a = CT1()
+
+# This is how we find out about the type tree.
 supertype(typeof(a))
 # - No type can have a concrete type for its supertype.
 struct CT2 <: CT1 end
-# - Types can be parameterized.
+# - Types can be parameterized. The type parameter here is `T`.
 struct CT1P{T} <: T1 where {T}
     f::T
 end
@@ -524,6 +532,7 @@ listsupertypes(Float16)
 typeof(1)<:Int
 typeof(1)<:Number
 typeof(1)<:Any
+Float16 <: Real
 
 
 # # Introduction to Julia for FEM programmers 4
@@ -639,8 +648,7 @@ smallestx(fens2)
 smallestx(fens3)
 
 # When the function `smallestx` is called with different types, it gets compiled
-# for each new type anew. The result is a collection of *methods* defined for
-# this function. More about this later.
+# for each new type anew (an appropriate method of `minimum` will be called).
 
 
 # # Introduction to Julia for FEM programmers 6
@@ -663,34 +671,34 @@ methods(+)
 
 # ### Multiple dispatch
 
-f(x::AbstractFloat, y::Int) = 2x + 2y
-f(5.13, 7)
-f(7, 5.13)
+a2(x::AbstractFloat, y::Int) = 2x + 2y
+a2(5.13, 7)
+a2(7, 5.13)
 
 # Now we add another method which works of arguments of type `Any`: this covers
 # all possible inputs. Of course, only inputs for which the operation `2x + 2y`
 # is defined make sense.
 
-f(x, y) = 2x + 2y
-f(7, 5.13)
+a2(x, y) = 2x + 2y
+a2(7, 5.13)
 
-methods(f)
+methods(a2)
 
 # What if we wanted to construct a string expressing the operation? Define
 # another method.
 
-f(x::String, y::String) = "2*$x + 2*$y"
-f("7", "5.13")
+a2(x::String, y::String) = "2*$x + 2*$y"
+a2("7", "5.13")
 
 # Multiple dispatch on the types of values is a **central feature** of the Julia
 # language.
 
 # ### Parameterized methods
 
-g(x::T1, y::T2) where {T1, T2} = 2x + 2y
-methods(g)
-g(5.13, 7)
-g(7, 5.13)
+aa2(x::T1, y::T2) where {T1, T2} = 2x + 2y
+methods(aa2)
+aa2(5.13, 7)
+aa2(7, 5.13)
 
 
 # # Introduction to Julia for FEM programmers 7
@@ -729,7 +737,9 @@ struct ElemConnSet
     connectivity::Array{Int64, 2}
 end
 
-Base.iterate(S::ElemConnSet, state=1) = state > size(S.connectivity, 1) ? nothing : (S.connectivity[state, :], state+1)
+Base.iterate(S::ElemConnSet, state=1) = state > size(S.connectivity, 1) ?
+    nothing :
+    (S.connectivity[state, :], state+1)
 
 ecs = ElemConnSet(rand(UInt16, 5, 2) .+ 1)
 
@@ -764,7 +774,7 @@ end
 using .FizzingWhizzbees
 FizzingWhizzbees.makeone()
 
-import .FizzingWhizzbees: makeone
+using .FizzingWhizzbees: makeone
 
 makeone()
 
@@ -827,7 +837,7 @@ dot(x, x)
 # Julia can treat code is data: transform and generate code. Julia code is a
 # data structure which can be accessed from the language itself.
 
-Examples of macros:
+# Examples of macros:
 
 @show (1 + 1)
 
@@ -894,13 +904,14 @@ c = ccall(dlsym(mycoslib, :mycos), Cdouble, (Cdouble,), x)
 
 # ### Avoid data copying and temporaries
 
-M, N, P = 10, 20, 15
+M, N, P = 100, 2000, 1500
 A = rand(ComplexF64, M, N)
 B = rand(ComplexF64, N, P)
 C = fill(0.0 + 0.0im, M, P)
 mul!(C, A, B)
 using BenchmarkTools
 @btime mul!($C, $A, $B)
+@btime $C =  $A * $B
 
 # ### Views
 
@@ -957,9 +968,9 @@ using LinearAlgebra
 LU = lu(A)
 
 
-Pl = spy(LU.L)
+Pl = UnicodePlots.spy(LU.L)
 display(Pl)
-Pl = spy(LU.U)
+Pl = UnicodePlots.spy(LU.U)
 display(Pl)
 
 # There are iterative solvers available, for instance
@@ -1020,8 +1031,6 @@ display(p)
 # quite developed and integrated into [statistical-exploration
 # packages](https://www.youtube.com/watch?v=OFPNph-WxLM). Scientific data
 # formats include HDF5, VTK graphics files and more.
-
-#
 
 
 

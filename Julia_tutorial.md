@@ -93,7 +93,6 @@ FORTRAN or C-language speed.
 Now we switch to the environment for the remainder of the tutorial.
 
 ```julia
-cd("..")
 using Pkg
 Pkg.activate(".")
 Pkg.instantiate()
@@ -166,7 +165,7 @@ a = 1.9
 using BenchmarkTools
 using LinearAlgebra
 @btime @. $y = $a * $x + $y
-@btime $y = BLAS.axpy!($a,$x,$y)
+@btime $y = BLAS.axpy!($a, $x, $y)
 @btime $y = saxpy!($a, $x, $y)
 ```
 
@@ -216,14 +215,28 @@ bezier(t, p0::T, p1::T, p2::T, p3::T)  where {T} =
 
 Try `?bezier`.
 
-Plotting is supplied with packages. Here we use the package `Gadfly` to plot a
+Different versions of function arguments will result in a collection of
+methods defined for the function.
+
+```julia
+p0, p1, p2, p3 = [1.0 0.0], [1.0 1.0], [0.0 1.0], [0.0 0.0]
+a = vcat(p0, p1, p2, p3)
+bezier(t, a) = bezier(t, a[1,:]', a[2,:]', a[3,:]', a[4,:]')
+bezier(0.5, a)
+bezier(0.5, p0, p1, p2, p3)
+methods(bezier)
+```
+
+Plotting is supplied with packages. Here we use the package `Winston` to plot a
 Bezier curve.
 
 ```julia
-using Gadfly
+using Winston
 t = 0.0: 0.01: 1.0
-p0, p1, p2, p3 = [1.0 0.0], [1.0 1.0], [0.0 1.0], [0.0 0.0]
-p = Gadfly.plot(x=bezier.(t, p0, p1, p2, p3)[:, 1], y=bezier.(t, p0, p1, p2, p3)[:, 2], Geom.point, Geom.line)
+a = vcat(p0, p1, p2, p3)
+bx = t -> bezier(t, a)[1]
+by = t -> bezier(t, a)[2]
+p = Winston.plot(bx.(t), by.(t), "r-")
 display(p)
 ```
 
@@ -232,17 +245,6 @@ time.
 
 ```julia
 @code_warntype _b0(Float32(0.0))
-```
-
-Different versions of function arguments will result in a collection of
-methods defined for the function.
-
-```julia
-a = vcat(p0, p1, p2, p3)
-bezier(t, a) = bezier(t, a[1,:]', a[2,:]', a[3,:]', a[4,:]')
-bezier(0.5, a)
-bezier(0.5, p0, p1, p2, p3)
-methods(bezier)
 ```
 
 ## A few distinguishing features
@@ -280,11 +282,24 @@ Notice the convention: type names are spelled with a capital letter.
 ```julia
 typeof(10_000)
 typeof(0.0)
+```
+
+Types may be equipped with a parameter: another type
+
+```julia
 typeof(0.0 + 1.0im)
 Float16(4.)
+```
 
+Usual conventions in numerical computing are followed.
+
+```julia
 Inf - Inf
+```
 
+Specialized floating-point types are not uncommon.
+
+```julia
 BigFloat(2.0^66) / 3
 ```
 
@@ -326,6 +341,9 @@ Int(round(5.1))
 
 ## Functions
 
+An untyped function: the compiler will attempt  to figure out the types  when
+the function gets called.
+
 ```julia
 function f(x, y)
     return x + y
@@ -333,7 +351,11 @@ end
 
 f(5, 3.0)
 f(2, 3)
+```
 
+Unicode characters may be used the name functions too.
+
+```julia
 Σ(x, y) = x + y
 Σ(1, 2)
 ```
@@ -342,7 +364,7 @@ Julia function arguments follow a convention sometimes called
 "pass-by-sharing", which means that values are not copied when they are passed
 to functions.
 
-Function arguments themselves act as new variable bindings (new locations that
+Function arguments act as new variable bindings (new locations that
 can refer to values), but the values they refer to are identical to the passed
 values.
 
@@ -353,7 +375,7 @@ g(x)
 x
 ```
 
-Defining "functions" with the same name produces methods for the function.
+Defining "functions" with the same name produces *methods* for the function.
 Methods are differentiated based on the types of their arguments. We have
 mentioned methods above, and we will talk more about  methods later.
 
@@ -368,17 +390,28 @@ op(4, 5, 6)
 
 ## Tuples
 
+List of values, separated by commas. It may be thought of in terms of the
+argument list, or the output from the function.
+
 ```julia
 (2, 3)
 ("hello", 42)
+```
 
+This function returns a tuple.
+
+```julia
 h(x) = "the value is", x
 c = h(1)
 c[1]
 c[2]
 c1, c2 = h(1)
 c1
+```
 
+Named tuples may also come in handy.
+
+```julia
 x = (a=9, b=1+1)
 x.b
 x[1]
@@ -386,13 +419,24 @@ x[1]
 
 ## Optional and keyword arguments
 
+Function with an optional argument.
+
 ```julia
 f(x, y=2) = y*x
 f(3)
+```
 
+Function with a keyword argument.
+
+```julia
 f(x; y) = x / y
 f(1)
 f(1; y=0)
+```
+
+Function with only keyword arguments.
+
+```julia
 f(; x, y) = y, x, y
 f(y = 1, x = 2)
 ```
@@ -429,7 +473,7 @@ Int8[[1 2] [3 4]]
 x = [j^2 for j in 1:5]
 ```
 
-The following expression sums a series without allocating memory:
+The following generator expression sums a series without allocating memory:
 
 ```julia
 sum(j^2 for j in 1:5)
@@ -438,13 +482,26 @@ sum(j^2 for j in 1:5)
 ### Indexing
 
 ```julia
-x[2]
-getindex(x, 3)
+x = [2^j+i+j for i in 1:3, j in 1:4]
+@show x
+```
 
-x[3] = 0
-x
-setindex!(x, 9, 3)
-x
+Arrays are stored column by column.
+
+```julia
+x[2]
+```
+
+Indexing is also implemented as functions!
+
+```julia
+getindex(x, 3)
+getindex(x, 3, 2)
+
+x[3] = -1
+@show x
+setindex!(x, -9, 1, 3)
+@show x
 ```
 
 Multidimensional arrays are supported:
@@ -464,7 +521,7 @@ x[2:end, 1:2]
 
 x = [1 2 3; 4 5 6; 7 8 9]
 x[[1, 3], [1]] .= 0
-x
+@show x
 ```
 
 ### Iteration
@@ -481,9 +538,9 @@ end
 Cartesian indexes
 
 ```julia
-B = view(A, 1:2, 1:2:3);
+@show B = view(A, 1:2, 1:2:3);
 for i in eachindex(B)
-    print(i, "\n")
+    print(i, " ", B[i], "\n")
 end
 B[2, 2] == B[CartesianIndex(2, 2)]
 ```
@@ -491,6 +548,7 @@ B[2, 2] == B[CartesianIndex(2, 2)]
 ### Array and Vectorized Operators and Functions
 
 ```julia
+B = reshape(1:4, (2, 2))
 B.^2
 sin.(B)
 sin.(B).^2 + cos.(B).^2
@@ -538,7 +596,12 @@ F(3.3)
 ```julia
 a = 3
 typeof(a)
+a = 310.0
+typeof(a)
 ```
+
+This doesn't mean that `a` changed type, it just points to a value of a
+different type.
 
 - All values have types, and all types are on equal footing (first class).
 
@@ -560,11 +623,17 @@ isconcretetype(typeof(1_000))
 isconcretetype(Number)
 ```
 
-- Abstract types can be subtyped.
+- Abstract types can be subtyped. This type is concrete, and hence the value
+of this type can exist.
 
 ```julia
 struct CT1 <: T1 end
 a = CT1()
+```
+
+This is how we find out about the type tree.
+
+```julia
 supertype(typeof(a))
 ```
 
@@ -574,7 +643,7 @@ supertype(typeof(a))
 struct CT2 <: CT1 end
 ```
 
-- Types can be parameterized.
+- Types can be parameterized. The type parameter here is `T`.
 
 ```julia
 struct CT1P{T} <: T1 where {T}
@@ -628,6 +697,7 @@ There is also a "subtype" operator.
 typeof(1)<:Int
 typeof(1)<:Number
 typeof(1)<:Any
+Float16 <: Real
 ```
 
 # Introduction to Julia for FEM programmers 4
@@ -639,7 +709,7 @@ typeof(1)<:Any
 The value representation consists entirely of a block of bits
 
 ```julia
-primitive type Float64 <: AbstractFloat 64 end
+primitive type MyFloat256 <: AbstractFloat 256 end
 ```
 
 ### Composite types
@@ -704,7 +774,7 @@ of this type can be generated by specifying the type of the floating-point
 numbers of the coordinates.
 
 ```julia
-struct FENodeSet{T}
+struct ParFENodeSet{T}
 	xyz::Array{T, 2}
 end
 ```
@@ -712,11 +782,11 @@ end
 The type name is reflected in the constructor:
 
 ```julia
-fens1 = FENodeSet([ 0.785864  0.211725
+fens1 = ParFENodeSet([0.785864  0.211725
 					0.987322  0.434764
 					0.501885  0.388429])
 
-fens2 = FENodeSet(Float16[ 0.785864  0.211725
+fens2 = ParFENodeSet(Float16[0.785864  0.211725
 					0.987322  0.434764
 					0.501885  0.388429])
 
@@ -732,32 +802,32 @@ function listsupertypes(t)
 	end
 end
 
-listsupertypes(FENodeSet{Float16})
+listsupertypes(ParFENodeSet{Float16})
 
-fens3 = FENodeSet(Number[ 0.785864  0.211725
+fens3 = ParFENodeSet(Number[0.785864  0.211725
 					0.987322  0.434764
 					0.501885  0.388429])
-listsupertypes(FENodeSet{Number})
+listsupertypes(ParFENodeSet{Number})
 ```
 
 Composite types with subtype parameters are not subtypes.
 
 ```julia
 Float16 <: Number
-FENodeSet{Float16} <: FENodeSet{Number}
+ParFENodeSet{Float16} <: ParFENodeSet{Number}
 ```
 
 This is known as *type invariance*.
 
 Abstract types as type parameters cause sometimes inefficiencies.
-`FENodeSet{Number}` must be able to store any number, integers of various
+`ParFENodeSet{Number}` must be able to store any number, integers of various
 numbers of bits, floating-point numbers... Compiler cannot allocate space.
 
 To write a function to operate on any variant of `FENodeSet{T}`, we should
 write
 
 ```julia
-function smallestx(fens::FENodeSet{<:Number})
+function smallestx(fens::ParFENodeSet{<:Number})
 	minimum(fens.xyz[:, 1])
 end
 
@@ -767,8 +837,7 @@ smallestx(fens3)
 ```
 
 When the function `smallestx` is called with different types, it gets compiled
-for each new type anew. The result is a collection of *methods* defined for
-this function. More about this later.
+for each new type anew (an appropriate method of `minimum` will be called).
 
 # Introduction to Julia for FEM programmers 6
 
@@ -793,9 +862,9 @@ the finite difference or finite element type).
 ### Multiple dispatch
 
 ```julia
-f(x::AbstractFloat, y::Int) = 2x + 2y
-f(5.13, 7)
-f(7, 5.13)
+a2(x::AbstractFloat, y::Int) = 2x + 2y
+a2(5.13, 7)
+a2(7, 5.13)
 ```
 
 Now we add another method which works of arguments of type `Any`: this covers
@@ -803,18 +872,18 @@ all possible inputs. Of course, only inputs for which the operation `2x + 2y`
 is defined make sense.
 
 ```julia
-f(x, y) = 2x + 2y
-f(7, 5.13)
+a2(x, y) = 2x + 2y
+a2(7, 5.13)
 
-methods(f)
+methods(a2)
 ```
 
 What if we wanted to construct a string expressing the operation? Define
 another method.
 
 ```julia
-f(x::String, y::String) = "2*$x + 2*$y"
-f("7", "5.13")
+a2(x::String, y::String) = "2*$x + 2*$y"
+a2("7", "5.13")
 ```
 
 Multiple dispatch on the types of values is a **central feature** of the Julia
@@ -823,10 +892,10 @@ language.
 ### Parameterized methods
 
 ```julia
-g(x::T1, y::T2) where {T1, T2} = 2x + 2y
-methods(g)
-g(5.13, 7)
-g(7, 5.13)
+aa2(x::T1, y::T2) where {T1, T2} = 2x + 2y
+methods(aa2)
+aa2(5.13, 7)
+aa2(7, 5.13)
 ```
 
 # Introduction to Julia for FEM programmers 7
@@ -867,7 +936,9 @@ struct ElemConnSet
     connectivity::Array{Int64, 2}
 end
 
-Base.iterate(S::ElemConnSet, state=1) = state > size(S.connectivity, 1) ? nothing : (S.connectivity[state, :], state+1)
+Base.iterate(S::ElemConnSet, state=1) = state > size(S.connectivity, 1) ?
+    nothing :
+    (S.connectivity[state, :], state+1)
 
 ecs = ElemConnSet(rand(UInt16, 5, 2) .+ 1)
 
@@ -903,7 +974,7 @@ end
 using .FizzingWhizzbees
 FizzingWhizzbees.makeone()
 
-import .FizzingWhizzbees: makeone
+using .FizzingWhizzbees: makeone
 
 makeone()
 ```
@@ -973,9 +1044,9 @@ dot(x, x)
 Julia can treat code is data: transform and generate code. Julia code is a
 data structure which can be accessed from the language itself.
 
-```julia
 Examples of macros:
 
+```julia
 @show (1 + 1)
 
 x = 0
@@ -1042,13 +1113,14 @@ like](https://github.com/JuliaLinearAlgebra/GenericLinearAlgebra.jl).
 ### Avoid data copying and temporaries
 
 ```julia
-M, N, P = 10, 20, 15
+M, N, P = 100, 2000, 1500
 A = rand(ComplexF64, M, N)
 B = rand(ComplexF64, N, P)
 C = fill(0.0 + 0.0im, M, P)
 mul!(C, A, B)
 using BenchmarkTools
 @btime mul!($C, $A, $B)
+@btime $C =  $A * $B
 ```
 
 ### Views
@@ -1114,9 +1186,9 @@ using LinearAlgebra
 LU = lu(A)
 
 
-Pl = spy(LU.L)
+Pl = UnicodePlots.spy(LU.L)
 display(Pl)
-Pl = spy(LU.U)
+Pl = UnicodePlots.spy(LU.U)
 display(Pl)
 ```
 
