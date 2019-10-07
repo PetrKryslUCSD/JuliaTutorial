@@ -26,6 +26,7 @@ using BenchmarkTools
 
 # The basic building block  is a function.
 function Poisson_on_triangle_mesh()
+    tstart = time()
     A = 1.0 # dimension of the domain (length of the side of the square)
     thermal_conductivity =  [i==j ? 1.0 : 0.0 for i=1:2, j=1:2];
     Q = -6.0; # internal heat generation rate
@@ -66,6 +67,8 @@ function Poisson_on_triangle_mesh()
     end
     Error = Error / size(fens.xyz,1)
 
+    println("The simulation took = $(time() - tstart) seconds")
+
     if false
         File =  "a.vtk"
         MeshExportModule.vtkexportmesh(File, fens, fes; scalars=[("Temperature", Temp.values)])
@@ -74,7 +77,7 @@ function Poisson_on_triangle_mesh()
 
     return Error
 end
-@btime Poisson_on_triangle_mesh()
+Poisson_on_triangle_mesh()
 
 # Depending on the computer (CPU, RAM) the function may run in around 10
 # seconds. So we can process 2 million triangles, 1 million degrees of freedom,
