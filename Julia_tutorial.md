@@ -34,6 +34,7 @@ The basic building block  is a function.
 
 ```julia
 function Poisson_on_triangle_mesh()
+    tstart = time()
     A = 1.0 # dimension of the domain (length of the side of the square)
     thermal_conductivity =  [i==j ? 1.0 : 0.0 for i=1:2, j=1:2];
     Q = -6.0; # internal heat generation rate
@@ -74,6 +75,8 @@ function Poisson_on_triangle_mesh()
     end
     Error = Error / size(fens.xyz,1)
 
+    println("The simulation took = $(time() - tstart) seconds")
+
     if false
         File =  "a.vtk"
         MeshExportModule.vtkexportmesh(File, fens, fes; scalars=[("Temperature", Temp.values)])
@@ -82,7 +85,7 @@ function Poisson_on_triangle_mesh()
 
     return Error
 end
-@btime Poisson_on_triangle_mesh()
+Poisson_on_triangle_mesh()
 ```
 
 Depending on the computer (CPU, RAM) the function may run in around 10
@@ -150,7 +153,7 @@ A naive implementation of the operation `Y <- A*X + Y` can be programmed in
 Julia to run at essentially the same speed as BLAS!
 
 ```julia
-saxpy!(a, x, y) = begin
+myaxpy!(a, x, y) = begin
     @assert length(x) == length(y)
     @inbounds for i in eachindex(x)
         y[i] = a * x[i] + y[i]
@@ -158,7 +161,7 @@ saxpy!(a, x, y) = begin
     return y
 end
 
-N = 10_000_000
+N = 100_000_000
 x = rand(N)
 y = rand(N)
 a = 1.9
@@ -166,7 +169,7 @@ using BenchmarkTools
 using LinearAlgebra
 @btime @. $y = $a * $x + $y
 @btime $y = BLAS.axpy!($a, $x, $y)
-@btime $y = saxpy!($a, $x, $y)
+@btime $y = myaxpy!($a, $x, $y)
 ```
 
 Arbitrary-precision numerics.
@@ -295,6 +298,8 @@ Usual conventions in numerical computing are followed.
 
 ```julia
 Inf - Inf
+
+prevfloat(Inf)
 ```
 
 Specialized floating-point types are not uncommon.
@@ -390,8 +395,8 @@ op(4, 5, 6)
 
 ## Tuples
 
-List of values, separated by commas. It may be thought of in terms of the
-argument list, or the output from the function.
+List of values, separated by commas. It may be thought of in terms of an
+argument list, or the output from a function.
 
 ```julia
 (2, 3)
@@ -407,6 +412,15 @@ c[1]
 c[2]
 c1, c2 = h(1)
 c1
+```
+
+This one does too:
+
+```julia
+function foo(x)
+    return x, 2*x, 3*x
+end
+foo(4)
 ```
 
 Named tuples may also come in handy.
@@ -691,6 +705,19 @@ end
 listsupertypes(Float16)
 ```
 
+Credit of Carsten Bauer
+
+```julia
+function show_subtypetree(T, level=1, indent=4)
+   level == 1 && println(T)
+   for s in subtypes(T)
+     println(join(fill(" ", level * indent)) * string(s))
+     show_subtypetree(s, level+1, indent)
+   end
+end
+show_subtypetree(Number)
+```
+
 There is also a "subtype" operator.
 
 ```julia
@@ -858,6 +885,36 @@ of things.
 The concept of methods being associated with functions rather than objects
 seems quite natural in scientific computing (such as the numerical methods of
 the finite difference or finite element type).
+
+*Example:*
+Consider the  check whether or not a vector of floating-point numbers is
+real, in the sense that no entry of that factor has a nonzero imaginary
+component.
+
+For a vector of complex numbers, we check all entries (or more precisely check
+with short-circuiting to stop the search as soon we find one component with
+nonzero imaginary part):
+
+```julia
+isrealvector(v::Array{Complex{T}, 1}) where {T} = !any((-).(v, conj(v)) .!= zero(Complex{T}))
+```
+
+The above is fine for vectors consisting of complex numbers. For vectors that
+consists only of real numbers, we know that they are real and no actual
+computation is necessary.
+
+```julia
+isrealvector(v::Array{T, 1}) where {T<:Real} = true
+v = rand(4)
+isrealvector(v)
+v = rand(4) + 0im .* rand(4)
+isrealvector(v)
+v = rand(4) + 1im .* rand(4)
+isrealvector(v)
+```
+
+So in this way we have a function with two methods, taking advantage of
+short-circuiting as much as possible for performance.
 
 ### Multiple dispatch
 
