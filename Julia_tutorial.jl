@@ -256,6 +256,8 @@ Float16(4.)
 # Usual conventions in numerical computing are followed.
 Inf - Inf
 
+prevfloat(Inf)
+
 # Specialized floating-point types are not uncommon.
 BigFloat(2.0^66) / 3
 
