@@ -1389,11 +1389,31 @@ using BenchmarkTools
 end
 
 @btime sol = pmap(i -> eigs($Ks[i], $Ms[i]; nev=6, which =  :SM), 1:length($Ks));
-
-
-
-end
 ```
+
+# Introduction to Julia for FEM programmers 17
+
+## Optimization of Julia code
+
+Julia source
+|
++- Parsed
+   |
+   +- Macro expansion (`@macroexpand`)
+      |
+      +- Lowering  (`@code_lowered`)
+         |
+         +- Type inference
+            |
+            +- Inlining
+               |
+               +- Generated function expansion  (`@code_typed`)
+                  |
+                  +- Code generation   (`@code_llvm`)
+                     |
+                     +- Native code  (`@code_native`)
+                        |
+                        +- Run
 
 *This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
 
