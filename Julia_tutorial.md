@@ -1175,6 +1175,10 @@ c = ccall(dlsym(mycoslib, :mycos), Cdouble, (Cdouble,), x)
 @show c, cos(x)
 ```
 
+Bits arrays (arrays which consist of entries of the "bits" type, such as
+floating-point or integer numbers) are packed in memory so that they can be
+*passed directly* to a C function.
+
 # Introduction to Julia for FEM programmers 12
 
 ## Linear algebra
