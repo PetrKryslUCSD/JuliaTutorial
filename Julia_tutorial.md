@@ -161,7 +161,7 @@ myaxpy!(a, x, y) = begin
     return y
 end
 
-N = 100_000_000
+N = 10_000_000
 x = rand(N)
 y = rand(N)
 a = 1.9
@@ -623,11 +623,21 @@ different type.
 typeof(5), typeof(5//3)
 ```
 
-- Abstract types are declared as such and no values of these types can exist.
+- Abstract types are declared as such and no values of these types can exist
+(an abstract type cannot define "fields", and hence cannot hold any data).
 
 ```julia
 abstract type T1 end
 T1()
+```
+
+- However, functions can refer to arguments of abstract types.
+
+```julia
+function f1(a::T, b) where {T<:T1}
+    return a.i * b
+end
+In this case, the assumption is that a subtype of `T1` will have a field `i`.
 ```
 
 - Type that is not abstract is concrete.
@@ -638,11 +648,17 @@ isconcretetype(Number)
 ```
 
 - Abstract types can be subtyped. This type is concrete, and hence the value
-of this type can exist.
+of this type can exist. Note the field `i`.
 
 ```julia
-struct CT1 <: T1 end
-a = CT1()
+struct CT1 <: T1; i; end
+a = CT1(4)
+```
+
+We can pass this value to the function `f1` defined above.
+
+```julia
+f1(a, 2)
 ```
 
 This is how we find out about the type tree.
@@ -651,7 +667,8 @@ This is how we find out about the type tree.
 supertype(typeof(a))
 ```
 
-- No type can have a concrete type for its supertype.
+- No type can have a concrete type for its supertype. In other words, concrete
+types cannot be subtyped.
 
 ```julia
 struct CT2 <: CT1 end
@@ -661,13 +678,13 @@ struct CT2 <: CT1 end
 
 ```julia
 struct CT1P{T} <: T1 where {T}
-    f::T
+    i::T # field
 end
 b = CT1P{Float64}(1.0)
 supertype(typeof(b))
-typeof(b.f)
+typeof(b.i)
 c = CT1P{Int64}(13)
-typeof(c.f)
+typeof(c.i)
 ```
 
 - All types are subtypes of `Any`.
@@ -1328,7 +1345,7 @@ clamp(a) = begin
 		a[i] > 0.5 && (a[i] = 0.5)
 	end
 end
-N = 10_000_000
+N = 100_000_000
 a = rand(N);
 using BenchmarkTools
 @btime clamp($a)
