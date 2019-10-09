@@ -1153,6 +1153,7 @@ end
 
 # ## Optimization of Julia code
 
+# ```
 # Julia source
 # |
 # +- Parsed
@@ -1172,3 +1173,4 @@ end
 #                      +- Native code  (`@code_native`)
 #                         |
 #                         +- Run
+# ```

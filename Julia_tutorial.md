@@ -1395,6 +1395,7 @@ end
 
 ## Optimization of Julia code
 
+```
 Julia source
 |
 +- Parsed
@@ -1414,6 +1415,7 @@ Julia source
                      +- Native code  (`@code_native`)
                         |
                         +- Run
+```
 
 *This page was generated using [Literate.jl](https://github.com/fredrikekre/Literate.jl).*
 
