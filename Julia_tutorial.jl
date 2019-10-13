@@ -79,10 +79,10 @@ function Poisson_on_triangle_mesh()
 end
 Poisson_on_triangle_mesh()
 
-# Depending on the computer (CPU, RAM) the function may run in around 10
-# seconds. So we can process 2 million triangles, 1 million degrees of freedom,
-# heat conduction problem in roughly 10 seconds. Clearly the code must run near
-# FORTRAN or C-language speed.
+# Depending on the computer (CPU, RAM) the function may run in around 10-20
+# seconds, and we process 2 million triangles, 1 million degrees of freedom,
+# heat conduction problem in this time. Clearly the code must run near FORTRAN
+# or C-language speed.
 
 # Now we switch to the environment for the remainder of the tutorial.
 using Pkg
@@ -155,6 +155,19 @@ using LinearAlgebra
 @btime $y = BLAS.axpy!($a, $x, $y)
 @btime $y = myaxpy!($a, $x, $y)
 
+# How can Julia be fast? There are no types here...
+myaxpy!(a, x, y) = begin
+    for i in eachindex(x)
+        y[i] = a * x[i] + y[i]
+    end
+    return y
+end
+@code_typed myaxpy!(a, x, y)
+# Note that for given inputs, the Julia compiler can figure out what types the
+# variables will be in the body of the function. The function will be "type
+# stable", which makes it possible for the compiler to generate efficient native
+# code.
+
 # Arbitrary-precision numerics.
 
 using LinearAlgebra
@@ -217,6 +230,10 @@ display(p)
 # time.
 @code_warntype _b0(Float32(0.0))
 
+# What are macros anyway?
+y = [1; 2]
+@assert length(y) == 2
+@macroexpand @assert length(y) == 2
 
 # ## A few distinguishing features
 
@@ -274,6 +291,68 @@ using LinearAlgebra
 C = A * B
 det(C)
 D = A \ B
+
+# Arrays can hold arbitrary objects, For instance other arrays.
+a = Vector[]
+push!(a, [1; 2; 3])
+push!(a, [4; 5])
+push!(a, [6; 7; 8])
+
+# Arrays are stored in column-major order in Julia.
+@inbounds function col_iter!(x)
+    s = zero(eltype(x))
+    for r in 1:size(x, 1)
+        for c in 1:size(x, 2)
+            s = s + x[r, c]^3
+            x[r, c] = s
+        end
+    end
+end
+@inbounds function row_iter!(x)
+    s = zero(eltype(x))
+    for c in 1:size(x, 2)
+        for r in 1:size(x, 1)
+            s = s + x[r, c]^3
+            x[r, c] = s
+        end
+    end
+end
+using BenchmarkTools
+a = rand(1533, 1361)
+@time col_iter!(a)
+@time row_iter!(a)
+
+# Transposes are handled gracefully: No data is actually copied.
+b = a'
+@time col_iter!(b)
+@time row_iter!(b)
+
+macro rowmajor(expr)
+    if expr.head == :ref
+        indcs = expr.args[end:-1:2]
+        @show Expr(:ref, expr.args[1], [i for i in indcs]...)
+    else
+        expr
+    end
+end
+
+@macroexpand(@rowmajor A[r, c])
+
+macro p(n)
+    Expr(n.head, n.args[1], reverse([:($i) for i in n.args[2:end]])...)
+end
+macro echo(e)
+    dump(e)
+    e
+end
+expr = :($(@echo(A[r,c])))
+@macroexpand(@p(A[r,c]))
+A = rand(3, 2)
+for r in 1:3, c in 1:2
+    @echo(A[r,c]) = r + c
+end
+@show A
+
 
 # ## Operators
 
@@ -932,20 +1011,50 @@ end)
 # ## Interoperability with the C language
 
 # In file mycos.c:
-# #include "math.h"
-#
-# // gcc -shared -fPIC -o mycos.so mycos.c -lm
-#
-# double
-# mycos(double x) { return cos(x); }
+c_code = """
+#include "math.h"
+
+// gcc -shared -fPIC -o bezier.so bezier.c -lm
+
+static double
+_b0(double t) { return (1.0 - t) * (1.0 - t) * (1.0 - t); }
+static double
+_b1(double t) { return t * (1.0 - t) * (1.0 - t) * 3.0; }
+static double
+_b2(double t) { return (1.0 - t) * t * t * 3.0; }
+static double
+_b3(double t) { return t * t * t; }
+
+double
+bezier(double t, double p0, double p1, double p2, double p3) {
+      return p0 * _b0(t) + p1 * _b1(t) + p2 * _b2(t) + p3 * _b3(t);
+}
+"""
+open("bezier.c", "w") do f
+    print(f, c_code)
+end
+
+# Now compile the C code. We will do that under Linux.
+# The next lines and also need to be executed on Linux.
 
 using Libdl
+run(`gcc -shared -fPIC -o bezier.$(Libdl.dlext) bezier.c -lm`)
 
-mycoslib = dlopen("./mycos.so")
+myclib = dlopen("./bezier.$(Libdl.dlext)")
 
-x = pi / 4
-c = ccall(dlsym(mycoslib, :mycos), Cdouble, (Cdouble,), x)
-@show c, cos(x)
+t, p0, p1, p2, p3 = 0.6, 0.0, 0.0, 1.0, 1.0
+
+# Now we compare with Julia-written code completely equivalent to the one in the C-language library.
+_b0(t) = (1 - t) ^ 3
+_b1(t) = t * (1 - t) * (1 - t) * 3
+_b2(t) = (1 - t) * t * t * 3
+_b3(t) = (t ^ 3)
+bezier(t, p0::T, p1::T, p2::T, p3::T)  where {T} =
+      p0 * _b0(t) + p1 * _b1(t) + p2 * _b2(t) + p3 * _b3(t)
+using BenchmarkTools
+cbezier = dlsym(myclib, :bezier)
+@benchmark  x = ccall($cbezier, Cdouble, (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble), $t, $p0, $p1, $p2, $p3)
+@benchmark bezier(t, $p0, $p1, $p2, $p3)
 
 # Bits arrays (arrays which consist of entries of the "bits" type, such as
 # floating-point or integer numbers) are packed in memory so that they can be
@@ -1176,3 +1285,28 @@ end
 #                         |
 #                         +- Run
 # ```
+
+
+# # Introduction to Julia for FEM programmers 18
+
+# ## OOP with Julia?
+
+# In Julia, methods are associated with functions, not with classes or objects.
+
+# It is nevertheless possible to define something that looks like methods defined for objects:  callable objects.
+
+# Create an abstract type for which to build an interface (functor).
+abstract type A end;
+# An interface function.
+(::A)(x) = x * (x - 1);
+(::A)(x::AbstractString) = x * ". Really?";
+
+struct B<:A end
+using BenchmarkTools;
+
+b = B()
+@btime $b(2);
+b("Giants")
+
+
+## Traits
