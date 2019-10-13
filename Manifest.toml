@@ -119,9 +119,9 @@ version = "0.5.0"
 
 [[CategoricalArrays]]
 deps = ["Compat", "DataAPI", "Future", "JSON", "Missings", "Printf", "Reexport", "Unicode"]
-git-tree-sha1 = "cc8b9d6b65ce76e934e14e3738af3abcc1019790"
+git-tree-sha1 = "45101c4d0df3946acb6e9bfcfd3a8c32abbd421b"
 uuid = "324d7699-5711-5eae-9e2f-1d82baa6b597"
-version = "0.7.0"
+version = "0.7.1"
 
 [[ColorTypes]]
 deps = ["FixedPointNumbers", "Random"]
@@ -143,9 +143,9 @@ version = "0.2.0"
 
 [[Compat]]
 deps = ["Base64", "Dates", "DelimitedFiles", "Distributed", "InteractiveUtils", "LibGit2", "Libdl", "LinearAlgebra", "Markdown", "Mmap", "Pkg", "Printf", "REPL", "Random", "Serialization", "SharedArrays", "Sockets", "SparseArrays", "Statistics", "Test", "UUIDs", "Unicode"]
-git-tree-sha1 = "84aa74986c5b9b898b0d1acaf3258741ee64754f"
+git-tree-sha1 = "ed2c4abadf84c53d9e58510b5fc48912c2336fbb"
 uuid = "34da2185-b29b-5c13-b0c7-acf172513d20"
-version = "2.1.0"
+version = "2.2.0"
 
 [[Compose]]
 deps = ["Base64", "Colors", "DataStructures", "Dates", "IterTools", "JSON", "LinearAlgebra", "Measures", "Printf", "Random", "Requires", "Test", "UUIDs"]
@@ -184,9 +184,9 @@ version = "1.1.0"
 
 [[DataStructures]]
 deps = ["InteractiveUtils", "OrderedCollections"]
-git-tree-sha1 = "517ce30aa57cdfae1ab444a7c0aef8bb86345bc2"
+git-tree-sha1 = "f94423c68f2e47db0d6f626a26d4872266e0ec3d"
 uuid = "864edb3b-99cc-5e75-8d2d-829cb0a9cfe8"
-version = "0.17.1"
+version = "0.17.2"
 
 [[Dates]]
 deps = ["Printf"]
@@ -292,9 +292,15 @@ version = "0.21.3"
 
 [[DocStringExtensions]]
 deps = ["LibGit2", "Markdown", "Pkg", "Test"]
-git-tree-sha1 = "0513f1a8991e9d83255e0140aace0d0fc4486600"
+git-tree-sha1 = "88bb0edb352b16608036faadcc071adda068582a"
 uuid = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
-version = "0.8.0"
+version = "0.8.1"
+
+[[Expat_jll]]
+deps = ["Libdl", "Pkg"]
+git-tree-sha1 = "e1b4190be75ba8d03ce2bec3a6cfc7a939c713ea"
+uuid = "2e619515-83b5-522b-bb60-26c02a35a201"
+version = "2.2.7+0"
 
 [[ExponentialUtilities]]
 deps = ["LinearAlgebra", "Printf", "SparseArrays"]
@@ -307,6 +313,12 @@ deps = ["AbstractFFTs", "BinaryProvider", "Conda", "Libdl", "LinearAlgebra", "Re
 git-tree-sha1 = "e1a479d3c972f20c9a70563eec740bbfc786f515"
 uuid = "7a1cc6ca-52ef-59f5-83cd-3a7055c09341"
 version = "0.3.0"
+
+[[FileIO]]
+deps = ["Pkg"]
+git-tree-sha1 = "351f001a78aa1b7ad2696e386e110b5abd071c71"
+uuid = "5789e2e9-d7fb-5bc7-8068-2c6fae9b9549"
+version = "1.0.7"
 
 [[FillArrays]]
 deps = ["LinearAlgebra", "Random", "SparseArrays"]
@@ -321,8 +333,8 @@ uuid = "91bb5406-6c9a-523d-811d-0644c4229550"
 version = "3.0.1"
 
 [[FinEtoolsHeatDiff]]
-deps = ["Arpack", "BenchmarkTools", "DifferentialEquations", "FinEtools", "LinearAlgebra", "Profile", "SparseArrays", "Statistics", "Test"]
-path = "C:\\Users\\PetrKrysl\\.julia\\dev\\FinEtoolsHeatDiff"
+deps = ["Arpack", "BenchmarkTools", "Calculus", "DifferentialEquations", "FinEtools", "LinearAlgebra", "Profile", "ProfileView", "SparseArrays", "Statistics", "Test"]
+path = "C:\\Users\\PK\\.julia\\dev\\FinEtoolsHeatDiff"
 uuid = "972d1c22-8bdd-11e9-11cf-cdcb7577b041"
 version = "0.1.0"
 
@@ -383,6 +395,12 @@ git-tree-sha1 = "b4c6c9848a711cf4a400fb74b54c67073471b713"
 uuid = "4c0ca9eb-093a-5379-98c5-f87ac0bbbf44"
 version = "0.17.0"
 
+[[GtkReactive]]
+deps = ["Cairo", "Colors", "Dates", "FixedPointNumbers", "Graphics", "Gtk", "IntervalSets", "Reactive", "Reexport", "RoundingIntegers"]
+git-tree-sha1 = "8e13a1d8851667f0a59a8aa2a98b2b09eec3d310"
+uuid = "27996c0f-39cd-5cc1-a27a-05f136f946b6"
+version = "0.6.0"
+
 [[HTTPClient]]
 deps = ["Compat", "LibCURL"]
 git-tree-sha1 = "161d5776ae8e585ac0b8c20fb81f17ab755b3671"
@@ -428,6 +446,12 @@ deps = ["AxisAlgorithms", "LinearAlgebra", "OffsetArrays", "Random", "Ratios", "
 git-tree-sha1 = "e1bac96b5ef3ea23b50e801b4a988ec21861a47f"
 uuid = "a98d9a8b-a2ab-59e6-89dd-64a1c18fca59"
 version = "0.12.2"
+
+[[IntervalSets]]
+deps = ["Dates", "Statistics"]
+git-tree-sha1 = "4214b48a62eb8f2c292b2ee34a508c256c0cdbc9"
+uuid = "8197267c-284f-5f27-9208-e0e47529a953"
+version = "0.3.2"
 
 [[IterTools]]
 git-tree-sha1 = "2ebe60d7343962966d1779a74a760f13217a6901"
@@ -476,10 +500,10 @@ uuid = "b27032c2-a3e7-50c8-80cd-2d36dbcbfd21"
 version = "0.5.2"
 
 [[LibExpat]]
-deps = ["Compat"]
-git-tree-sha1 = "fde352ec13479e2f90e57939da2440fb78c5e388"
+deps = ["Expat_jll", "Pkg"]
+git-tree-sha1 = "d9fac1b7f80ec63bfc64c7d8fd4060dfc3cba230"
 uuid = "522f3ed2-3f36-55e3-b6df-e94fee9b0c07"
-version = "0.5.0"
+version = "0.6.0"
 
 [[LibGit2]]
 uuid = "76f85450-5226-5b5a-8eaa-529ad045b433"
@@ -639,7 +663,7 @@ uuid = "69de0a69-1ddd-5017-9359-2bf0b02dc9f0"
 version = "0.3.7"
 
 [[Pkg]]
-deps = ["Dates", "LibGit2", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
+deps = ["Dates", "LibGit2", "Libdl", "Logging", "Markdown", "Printf", "REPL", "Random", "SHA", "UUIDs"]
 uuid = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 
 [[PoissonRandom]]
@@ -661,6 +685,12 @@ uuid = "de0858da-6303-5e67-8744-51eddeeeb8d7"
 [[Profile]]
 deps = ["Printf"]
 uuid = "9abbd945-dff8-562f-b5e8-e1ebf5ef1b79"
+
+[[ProfileView]]
+deps = ["Cairo", "Colors", "FileIO", "Graphics", "Gtk", "GtkReactive", "InteractiveUtils", "IntervalSets", "Profile", "UUIDs"]
+git-tree-sha1 = "956eb8b83eb9bbaee6307c55052288751838ee73"
+uuid = "c46f51b8-102a-5cf2-8d2c-8597cb0e0da7"
+version = "0.4.1"
 
 [[QuadGK]]
 deps = ["DataStructures", "LinearAlgebra", "Test"]
@@ -687,6 +717,12 @@ deps = ["Compat"]
 git-tree-sha1 = "cdbbe0f350581296f3a2e3e7a91b214121934407"
 uuid = "c84ed2f1-dad5-54f0-aa8e-dbefe2724439"
 version = "0.3.1"
+
+[[Reactive]]
+deps = ["DataStructures", "Distributed", "Test"]
+git-tree-sha1 = "5862d915387ebb954016f50a88e34f79a9e5fcd2"
+uuid = "a223df75-4e93-5b7c-acf9-bdd599c0f4de"
+version = "0.8.3"
 
 [[Readables]]
 deps = ["Test"]
@@ -740,6 +776,12 @@ deps = ["Printf"]
 git-tree-sha1 = "9cc4b586c71f9aea25312b94be8c195f119b0ec3"
 uuid = "f2b01f46-fcfa-551c-844a-d8ac1e96c665"
 version = "0.8.3"
+
+[[RoundingIntegers]]
+deps = ["Test"]
+git-tree-sha1 = "293ba0ab32218b9ffd596040224228def84f8da0"
+uuid = "d5f540fe-1c90-5db3-b776-2e2f362d9394"
+version = "0.2.0"
 
 [[SHA]]
 uuid = "ea8e919c-243c-51af-8825-aaa63cd721ce"
