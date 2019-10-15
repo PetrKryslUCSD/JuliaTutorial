@@ -139,7 +139,7 @@ f(x) = (3 * x)
 
 myaxpy!(a, x, y) = begin
     @assert length(x) == length(y)
-    @inbounds for i in eachindex(x)
+    @inbounds @simd for i in eachindex(x)
         y[i] = a * x[i] + y[i]
     end
     return y
@@ -1258,6 +1258,59 @@ using BenchmarkTools
 end
 
 @btime sol = pmap(i -> eigs($Ks[i], $Ms[i]; nev=6, which =  :SM), 1:length($Ks));
+
+# Example: threaded "assembly"
+
+# Please execute this with Julia 1.3 and newer. The `@spawn` feature is at
+# this point experimental.
+
+struct ThreadBuffer
+	t::Int64
+	workon::Vector{Int64}
+	forces::Vector{Float64}
+end
+
+nel = 200_000 # Number of elements
+nth = 4 # Number of threads to use
+chunk = Int64(round(nel / nth)) # Number of elements per thread
+
+# Create the thread buffers
+buffers = ThreadBuffer[];
+for t in 1:nth-1
+	push!(buffers, ThreadBuffer(t, chunk*(t-1)+1:chunk*(t)+1-1, fill(0.0, nel)));
+end
+push!(buffers, ThreadBuffer(nth, chunk*(nth-1)+1:nel, fill(0.0, nel)));
+
+updateforces!(list, forces) = begin
+	for el in list
+		for _ in 1:1000
+			forces[el] += tan(rand()) + sin(cos(rand()))^2;
+		end
+	end
+	return forces
+end
+threadwork(t) = begin
+	updateforces!(buffers[t].workon, buffers[t].forces)
+end
+
+using Base.Threads
+tstart = time();
+tasks = [];
+for t in 1:nth
+	push!(tasks, Threads.@spawn threadwork(t));
+end
+
+assembleforces!(assembledforces, list, forces) = begin
+	assembledforces[list] .+= forces[list];
+end
+assembledforces = fill(0.0, nel);
+for t in 1:length(tasks)
+	Threads.wait(tasks[t]);
+	assembleforces!(assembledforces, buffers[t].workon, buffers[t].forces)
+end
+
+println("Done: $(time() - tstart) seconds")
+
 
 
 # # Introduction to Julia for FEM programmers 17
