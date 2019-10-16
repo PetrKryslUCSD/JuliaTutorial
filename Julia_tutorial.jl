@@ -322,36 +322,12 @@ a = rand(1533, 1361)
 @time col_iter!(a)
 @time row_iter!(a)
 
-# Transposes are handled gracefully: No data is actually copied.
+# Transposes are handled gracefully: No data is actually copied. Hence the
+# data layout still presents the same challenge when striving for good
+# performance.
 b = a'
 @time col_iter!(b)
 @time row_iter!(b)
-
-macro rowmajor(expr)
-    if expr.head == :ref
-        indcs = expr.args[end:-1:2]
-        @show Expr(:ref, expr.args[1], [i for i in indcs]...)
-    else
-        expr
-    end
-end
-
-@macroexpand(@rowmajor A[r, c])
-
-macro p(n)
-    Expr(n.head, n.args[1], reverse([:($i) for i in n.args[2:end]])...)
-end
-macro echo(e)
-    dump(e)
-    e
-end
-expr = :($(@echo(A[r,c])))
-@macroexpand(@p(A[r,c]))
-A = rand(3, 2)
-for r in 1:3, c in 1:2
-    @echo(A[r,c]) = r + c
-end
-@show A
 
 
 # ## Operators
