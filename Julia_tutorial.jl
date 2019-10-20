@@ -1240,26 +1240,18 @@ end
 # Please execute this with Julia 1.3 and newer. The `@spawn` feature is at
 # this point experimental.
 
+# Buffer to be used with each thread
 struct ThreadBuffer
 	t::Int64
 	workon::Vector{Int64}
 	forces::Vector{Float64}
 end
 
-nel = 200_000 # Number of elements
-nth = 4 # Number of threads to use
-chunk = Int64(round(nel / nth)) # Number of elements per thread
-
-# Create the thread buffers
-buffers = ThreadBuffer[];
-for t in 1:nth-1
-	push!(buffers, ThreadBuffer(t, chunk*(t-1)+1:chunk*(t)+1-1, fill(0.0, nel)));
-end
-push!(buffers, ThreadBuffer(nth, chunk*(nth-1)+1:nel, fill(0.0, nel)));
-
+# These are the "pretend work" functions: simply make the thread spend some time
+# calculating
 updateforces!(list, forces) = begin
 	for el in list
-		for _ in 1:1000
+		for _ in 1:10
 			forces[el] += tan(rand()) + sin(cos(rand()))^2;
 		end
 	end
@@ -1269,23 +1261,38 @@ threadwork(t) = begin
 	updateforces!(buffers[t].workon, buffers[t].forces)
 end
 
+# When each thread finishes, we update the global array of forces
+assembleforces!(assembledforces, list, forces) = begin
+	assembledforces[list] .+= forces[list];
+end
+
 using Base.Threads
+
+nel = 4_000_000 # Number of elements
+
 tstart = time();
+nth = 2 # Number of threads to use
+chunk = Int64(round(nel / nth)) # Number of elements per thread
+
+# Create the thread buffers
+buffers = ThreadBuffer[];
+for t in 1:nth-1
+	push!(buffers, ThreadBuffer(t, chunk*(t-1)+1:chunk*(t)+1-1, fill(0.0, nel)));
+end
+push!(buffers, ThreadBuffer(nth, chunk*(nth-1)+1:nel, fill(0.0, nel)));
+
 tasks = [];
 for t in 1:nth
 	push!(tasks, Threads.@spawn threadwork(t));
 end
 
-assembleforces!(assembledforces, list, forces) = begin
-	assembledforces[list] .+= forces[list];
-end
 assembledforces = fill(0.0, nel);
 for t in 1:length(tasks)
 	Threads.wait(tasks[t]);
 	assembleforces!(assembledforces, buffers[t].workon, buffers[t].forces)
 end
 
-println("Done: $(time() - tstart) seconds")
+println("With $(nth) out of $(Base.Threads.nthreads()) threads: $(time() - tstart) seconds")
 
 
 
