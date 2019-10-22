@@ -760,7 +760,7 @@ methods(+)
 
 # *Example:*
 # Consider the  check whether or not a vector of floating-point numbers is
-# real, in the sense that no entry of that factor has a nonzero imaginary
+# real, in the sense that no entry of that vector has a nonzero imaginary
 # component.
 
 # For a vector of complex numbers, we check all entries (or more precisely check
@@ -801,8 +801,8 @@ methods(a2)
 a2(x::String, y::String) = "2*$x + 2*$y"
 a2("7", "5.13")
 
-# Multiple dispatch on the types of values is a **central feature** of the Julia
-# language.
+# Multiple dispatch on the types of values past in as arguments is a **central
+# feature** of the Julia language.
 
 # ### Parameterized methods
 
@@ -816,7 +816,7 @@ aa2(7, 5.13)
 
 # ## Methods: continued
 
-# ### Callable object (functors)
+# ### Callable object (functor)
 
 struct NormalEvaluator{F}
     evaluationfunction::F
@@ -1341,7 +1341,7 @@ struct B<:A end
 using BenchmarkTools;
 
 b = B()
-@btime $b(2);
+b(2)
 b("Giants")
 
 
