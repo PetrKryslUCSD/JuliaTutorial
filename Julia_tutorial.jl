@@ -1032,13 +1032,13 @@ cbezier = dlsym(myclib, :bezier)
 @benchmark  x = ccall($cbezier, Cdouble, (Cdouble, Cdouble, Cdouble, Cdouble, Cdouble), $t, $p0, $p1, $p2, $p3)
 @benchmark bezier(t, $p0, $p1, $p2, $p3)
 
-# Bits arrays (arrays which consist of entries of the "bits" type, such as
-# floating-point or integer numbers) are packed in memory so that they can be
-# *passed directly* to a C function.
-
 # # Introduction to Julia for FEM programmers 12
 
 # ## Linear algebra
+
+# Bits arrays (arrays which consist of entries of the "bits" type, such as
+# floating-point or integer numbers) are packed in memory so that they can be
+# *passed directly* to a C function.
 
 # BLAS and LAPACK are supported. In addition, there are pure-Julia
 # implementations of linear algebra which are a vision of what the [future
@@ -1063,8 +1063,10 @@ using BenchmarkTools
 
 A = rand(1000, 2000)
 using BenchmarkTools
-@btime Asub = A[2:2:end, 1:2:end]
-@btime Asub = view(A, 2:2:lastindex(A, 1), 1:2:lastindex(A, 2))
+@btime Asub = $A[2:2:end, 1:2:end]
+@btime Asub = view($A, 2:2:lastindex($A, 1), 1:2:lastindex($A, 2))
+@btime Asub = @views $A[2:2:lastindex($A, 1), 1:2:lastindex($A, 2)]
+
 
 # ### Broadcast and fusion
 
@@ -1325,24 +1327,6 @@ println("With $(nth) out of $(Base.Threads.nthreads()) threads: $(time() - tstar
 
 # # Introduction to Julia for FEM programmers 18
 
-# ## OOP with Julia?
-
-# In Julia, methods are associated with functions, not with classes or objects.
-
-# It is nevertheless possible to define something that looks like methods defined for objects:  callable objects.
-
-# Create an abstract type for which to build an interface (functor).
-abstract type A end;
-# An interface function.
-(::A)(x) = x * (x - 1);
-(::A)(x::AbstractString) = x * ". Really?";
-
-struct B<:A end
-using BenchmarkTools;
-
-b = B()
-b(2)
-b("Giants")
-
-
 ## Traits
+
+# To be written.
