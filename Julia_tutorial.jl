@@ -797,7 +797,7 @@ methods(a2)
 
 # What if we wanted to construct a string expressing the operation? Define
 # another method.
-
+a2(x, y::String) = "2*$(x)" * "+" * y * y
 a2(x::String, y::String) = "2*$x + 2*$y"
 a2("7", "5.13")
 
@@ -922,10 +922,11 @@ using Test
 myapproximateequal(x, y, tol) = abs(x - y) <= tol
 
 x = 1.13
-y = 1.135
+y = 1.13000000005
 tol = 0.01
 @test myapproximateequal(x, y, tol) == true
 @test myapproximateequal(x, y, tol / 10) !== true
+@test x ≈ y
 
 # #### linear algebra
 
@@ -1110,12 +1111,12 @@ using LinearAlgebra
 
 @show A \ rand(5)
 
-LU = lu(A)
+lufact = lu(A)
 
 
-Pl = UnicodePlots.spy(LU.L)
+Pl = UnicodePlots.spy(lufact.L)
 display(Pl)
-Pl = UnicodePlots.spy(LU.U)
+Pl = UnicodePlots.spy(lufact.U)
 display(Pl)
 
 # There are iterative solvers available, for instance
@@ -1273,7 +1274,7 @@ using Base.Threads
 nel = 4_000_000 # Number of elements
 
 tstart = time();
-nth = 2 # Number of threads to use
+nth = Base.Threads.nthreads() # Number of threads to use
 chunk = Int64(round(nel / nth)) # Number of elements per thread
 
 # Create the thread buffers
