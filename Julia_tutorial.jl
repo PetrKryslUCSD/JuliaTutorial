@@ -1326,8 +1326,53 @@ println("With $(nth) out of $(Base.Threads.nthreads()) threads: $(time() - tstar
 # ```
 
 
-# # Introduction to Julia for FEM programmers 18
+# # Introduction to Julia for FEM programmers 19
+
+## Automatic differentiation: showcasing subtyping
+
+# Let us define a user-type, Dual numbers (CLIFFORD).
+
+# Note that it is a subtype of `Number`.
+struct DuN<:Number
+	n::Tuple{Float64,Float64}
+end
+
+# Now we define operations on dual numbers, where both the variable value and
+# the value of the derivative of the variable are being computed  at the same
+# time. These are straightforward definitions of the chain rule.
+Base.:+(a::DuN, b::DuN) = DuN((a.n[1] + b.n[1], a.n[2] + b.n[2]))
+Base.:-(a::DuN, b::DuN) = DuN((a.n[1] - b.n[1], a.n[2] - b.n[2]))
+Base.:*(a::DuN, b::DuN) = DuN((a.n[1] * b.n[1], a.n[2]*b.n[1] + a.n[1]*b.n[2]))
+Base.:/(a::DuN, b::DuN) = DuN((a.n[1] / b.n[1], (a.n[2]*b.n[1] - a.n[1]*b.n[2])/(b.n[1]^2)))
+
+# In order to be able to mix regular floating-point and integer values with
+# dual numbers, we define some type of promotion and conversion rules.
+Base.promote_rule(::Type{DuN}, ::Type{<:Number})  = DuN
+Base.convert(::Type{DuN}, x::Real) = DuN((x, zero(x)))
+
+a = DuN((sqrt(2.0), 1.0))
+
+a + 1.0
+1.0 + a
+
+# Now we define a function, and...
+f(x) = x*x - x
+# ...evaluating the function will compute the dual number of the result, which
+# will reflect both the value of the function and the value of its first
+# derivative with respect to the argument.
+f(a)
+# Compare with `2*x-1`
+x = a.n[1]; (x*x - x, 2*x-1)
+
+# Another example
+g(x) = 1.0/x
+
+g(a)
+
+
+# # Introduction to Julia for FEM programmers 20
 
 ## Traits
 
 # To be written.
+
