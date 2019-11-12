@@ -1369,6 +1369,25 @@ g(x) = 1.0/x
 
 g(a)
 
+# We can even teach the system to recognize discontinuous functions.
+heaviside(x) = x == 0.0 ? DuN((0.0, Inf)) : (x < 0 ? DuN((0.0, 0.0)) : DuN((1.0, 0.0)))
+
+# Then
+heaviside(0.0)                        
+                                             
+heaviside(-10.0)                              
+                                             
+heaviside(20.0)    
+
+# How do we take derivative of some function then? Here is a bit simplistic version:
+derivative(f, x) = f(DuN((x, 1.0))).n[2]
+
+derivative(f, sqrt(2.0))
+derivative(g, sqrt(2.0))
+
+# Note that the key to the `derivative` function working is not to make it
+# impossible for the function to accept a dual number as argument. Hence we
+# should not type  the argument of the function to be differentiated strictly.
 
 # # Introduction to Julia for FEM programmers 20
 
