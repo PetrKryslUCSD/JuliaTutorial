@@ -146,14 +146,14 @@ myaxpy!(a, x, y) = begin
 end
 
 N = 10_000_000
-x = rand(N)
-y = rand(N)
+x = rand(N);
+y = rand(N);
 a = 1.9
 using BenchmarkTools
 using LinearAlgebra
-@btime @. $y = $a * $x + $y
-@btime $y = BLAS.axpy!($a, $x, $y)
-@btime $y = myaxpy!($a, $x, $y)
+@btime @. $y = $a * $x + $y;
+@btime $y = BLAS.axpy!($a, $x, $y);
+@btime $y = myaxpy!($a, $x, $y);
 
 # How can Julia be fast? There are no types here...
 myaxpy!(a, x, y) = begin
@@ -173,9 +173,12 @@ end
 using LinearAlgebra
 
 N = 150
-A = rand(N, N) + 10000I
+A = rand(N, N) + 10000I;
 det(A)
 
+# We add the below package in order to use it. Please be patient, the building will take a minute.
+# Fortunately it only needs to be done once.
+import Pkg; Pkg.add("ArbNumerics")
 using ArbNumerics
 det(ArbFloat.(A))
 
