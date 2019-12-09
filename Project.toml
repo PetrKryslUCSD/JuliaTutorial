@@ -1,12 +1,7 @@
+name = "JuliaTutorial2019"
+uuid = "790f9590-e644-4e65-8ce7-4bc7d7acae49"
+authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
+version = "0.1.0"
+
 [deps]
-ArbNumerics = "7e558dbc-694d-5a72-987c-6f4ebed21442"
-Arpack = "7d9fca2a-8960-54d3-9f78-7d1dccf2cb97"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-FinEtoolsHeatDiff = "972d1c22-8bdd-11e9-11cf-cdcb7577b041"
-GR = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
-Gadfly = "c91e804a-d5a3-530f-b6f0-dfbca275c004"
-LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
-Literate = "98b081ad-f1c9-55d3-8b20-4c87d4299306"
-PGFPlotsX = "8314cec4-20b6-5062-9cdb-752b83310925"
-UnicodePlots = "b8865327-cd53-5732-bb35-84acbb429228"
-Winston = "bd07be1c-e76f-5ff0-9c0b-f51ef45303c6"
