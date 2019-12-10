@@ -91,6 +91,7 @@ Poisson_on_triangle_mesh()
 
 # Now we switch to the standard environment for the remainder 
 # of the tutorial.
+cd("..")
 using Pkg
 Pkg.activate(".")
 Pkg.instantiate()
@@ -155,6 +156,7 @@ N = 10_000_000
 x = rand(N);
 y = rand(N);
 a = 1.9
+import Pkg; Pkg.add("BenchmarkTools")
 using BenchmarkTools
 using LinearAlgebra
 @btime @. $y = $a * $x + $y;
@@ -182,8 +184,8 @@ N = 150
 A = rand(N, N) + 10000I;
 det(A)
 
-# We add the below package in order to use it. Please be patient, the building will take a minute.
-# Fortunately it only needs to be done once.
+# We add the below package in order to use it. Please be patient, the building
+# will take a minute. Fortunately it only needs to be done once.
 import Pkg; Pkg.add("ArbNumerics")
 using ArbNumerics
 det(ArbFloat.(A))
@@ -228,14 +230,14 @@ methods(bezier)
 # Bezier curve.
 
 # Here we try out some graphics. First we need to install a package.
-import Pkg; Pkg.add("Winston")
-# I'm afraid it has a lot of dependencies. It will take a while to install all. But again, it only needs to be done once.
-using Winston
+# Unfortunately, building GR takes a few minutes.
+import Pkg; Pkg.add("GR")
+using GR
 t = 0.0: 0.01: 1.0
 a = vcat(p0, p1, p2, p3)
 bx = t -> bezier(t, a)[1]
 by = t -> bezier(t, a)[2]
-p = Winston.plot(bx.(t), by.(t), "r-")
+p = GR.plot(bx.(t), by.(t))
 display(p)
 
 # Manipulation of Julia code is possible with macros. Macros run at compile
@@ -330,16 +332,20 @@ end
     end
 end
 using BenchmarkTools
-a = rand(1533, 1361)
-@time col_iter!(a)
-@time row_iter!(a)
+a = rand(1533, 1361);
+@btime col_iter!($a);
+@btime row_iter!($a);
+
+# The row iteration accesses data as they are ordered in memory. Hence it is
+# faster.
 
 # Transposes are handled gracefully: No data is actually copied. Hence the
 # data layout still presents the same challenge when striving for good
 # performance.
-b = a'
-@time col_iter!(b)
-@time row_iter!(b)
+b = a';
+@btime col_iter!($b);
+b = a';
+@btime row_iter!($b);
 
 
 # ## Operators
@@ -352,7 +358,7 @@ one(0)
 # ## Conversions
 
 convert(Int, 5.0)
-Int(5.1)
+Int(5.1) # This will fail: this operation involves loss of data
 Int(round(5.1))
 
 # ## Functions
@@ -401,7 +407,7 @@ op(4, 5, 6)
 ("hello", 42)
 
 # This function returns a tuple.
-h(x) = "the value is", x
+h(x) = "the value is ", x
 c = h(1)
 c[1]
 c[2]
@@ -441,9 +447,9 @@ f(y = 1, x = 2)
 
 # ## Multi-dimensional Arrays
 
-# Arrays in Julia are fully supported by the language, plus there are additional
-# packages for working with arrays in novel ways: small arrays allocated on the
-# stack, strided arrays, distributed arrays.
+# Arrays in Julia are fully supported by the language, plus there are
+# additional packages for working with arrays in novel ways: small arrays
+# allocated on the stack, strided arrays, distributed arrays.
 
 # ### Concatenation
 
@@ -514,9 +520,12 @@ B[2, 2] == B[CartesianIndex(2, 2)]
 # ### Array and Vectorized Operators and Functions
 
 B = reshape(1:4, (2, 2))
+# These are entry-wise operations (individual entries of the matrix are
+# modified, these are not matrix operations).
 B.^2
 sin.(B)
-sin.(B).^2 + cos.(B).^2
+sin.(B).^2 .+ cos.(B).^2 # 
+@. sin(B)^2 + cos(B)^2 # Using code transformation with a macro: fusion
 
 # ### Broadcasting
 
@@ -554,6 +563,7 @@ typeof(a)
 
 # - All values have types, and all types are on equal footing (first class).
 typeof(5), typeof(5//3)
+
 # - Abstract types are declared as such and no values of these types can exist
 # (an abstract type cannot define "fields", and hence cannot hold any data).
 abstract type T1 end
