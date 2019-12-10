@@ -1073,24 +1073,24 @@ cbezier = dlsym(myclib, :bezier)
 # ### Avoid data copying and temporaries
 
 M, N, P = 100, 2000, 1500
-A = rand(ComplexF64, M, N)
-B = rand(ComplexF64, N, P)
-C = fill(0.0 + 0.0im, M, P)
-mul!(C, A, B)
+A = rand(ComplexF64, M, N);
+B = rand(ComplexF64, N, P);
+C = fill(0.0 + 0.0im, M, P);
+mul!(C, A, B);
 using BenchmarkTools
-@btime mul!($C, $A, $B)
-@btime $C =  $A * $B
+@btime mul!($C, $A, $B);
+@btime $C .=  $A * $B;
 
 # ### Views
 
 # When constructing sub matrices it is possible to avoid copying of the matrix
 # entries by using views.
 
-A = rand(1000, 2000)
+A = rand(1000, 2000);
 using BenchmarkTools
-@btime Asub = $A[2:2:end, 1:2:end]
-@btime Asub = view($A, 2:2:lastindex($A, 1), 1:2:lastindex($A, 2))
-@btime Asub = @views $A[2:2:lastindex($A, 1), 1:2:lastindex($A, 2)]
+@btime Asub = $A[2:2:end, 1:2:end];
+@btime Asub = view($A, 2:2:lastindex($A, 1), 1:2:lastindex($A, 2));
+@btime Asub = @views $A[2:2:lastindex($A, 1), 1:2:lastindex($A, 2)];
 
 
 # ### Broadcast and fusion
@@ -1107,9 +1107,9 @@ C = similar(B)
 
 # With the "dot" notation, views are also employed to carry out assignment in
 # place.
-Y = rand(50)
-X = fill(0.0, length(Y) + 1)
-X[2:end] .= sin.(Y)
+Y = rand(50);
+X = fill(0.0, length(Y) + 1);
+X[2:end] .= sin.(Y);
 
 
 
@@ -1124,8 +1124,9 @@ using SparseArrays
 
 A = sparse([1, 2, 3, 3, 4, 3, 5], [1, 2, 2, 4, 4, 3, 5], Float32[3, 4, 2, 4, -3, 5, 1], 5, 5)
 
+import Pkg; Pkg.add("UnicodePlots")
 using UnicodePlots
-Pl = UnicodePlots.spy(A)
+Pl = UnicodePlots.spy(A, canvas = DotCanvas)
 display(Pl)
 
 # Solvers include direct factorizations, with high-performance solvers such as
@@ -1138,9 +1139,9 @@ using LinearAlgebra
 lufact = lu(A)
 
 
-Pl = UnicodePlots.spy(lufact.L)
+Pl = UnicodePlots.spy(lufact.L, canvas = DotCanvas)
 display(Pl)
-Pl = UnicodePlots.spy(lufact.U)
+Pl = UnicodePlots.spy(lufact.U, canvas = DotCanvas)
 display(Pl)
 
 # There are iterative solvers available, for instance
@@ -1158,6 +1159,7 @@ display(Pl)
 # interactive graphics with OpenGL: Makie. Regular 2D plotting PGFPlotsx.
 
 # Sample of Gadfly plotting.
+import Pkg; Pkg.add("Gadfly")
 using Gadfly
 xvalues = rand(100)
 yvalues = rand(100)
@@ -1168,6 +1170,7 @@ p = Gadfly.plot(x=1:10, y=2.0.^rand(10), Scale.y_sqrt, Geom.point, Geom.smooth, 
 display(p)
 
 # Sample of PGFPlotsX  publication-quality plotting for journals.
+import Pkg; Pkg.add("PGFPlotsX")
 using PGFPlotsX
 @pgf p = Axis({
         xlabel = "Cost",
@@ -1234,6 +1237,7 @@ end
 # Example: compute free-vibration solutions for a number of
 # substructures in parallel.
 
+import Pkg; Pkg.add("Arpack")
 using SparseArrays
 using LinearAlgebra
 M = 4
@@ -1242,8 +1246,8 @@ symmtx(n) = begin
 	m = sprand(Float64, N, N, 0.001)
 	m + m' + 10.0I
 end
-Ks = [symmtx(N) for i in 1:M]
-Ms = [symmtx(N) for i in 1:M]
+Ks = [symmtx(N) for i in 1:M];
+Ms = [symmtx(N) for i in 1:M];
 
 using Distributed
 using Arpack: eigs
@@ -1412,10 +1416,4 @@ derivative(g, sqrt(2.0))
 # Note that the key to the `derivative` function working is not to make it
 # impossible for the function to accept a dual number as argument. Hence we
 # should not type  the argument of the function to be differentiated strictly.
-
-# # Introduction to Julia for FEM programmers 20
-
-## Traits
-
-# To be written.
 
