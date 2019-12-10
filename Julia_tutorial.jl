@@ -12,9 +12,14 @@
 # ## Quick preview
 
 # The Julia command line introduces a programming environment.
+# Here we install an unregistered package, directly from github. Note that
+# this will only succeed the first time. If you wish to repeat this exercise,
+# please remove the folder ./FinEtoolsHeatDiff.jl.
+run(`git clone https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl`)
+# Now we activate and instantiate the environment of this package.
+cd("FinEtoolsHeatDiff.jl")
 using Pkg
-Pkg.develop(PackageSpec(url="https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl"))
-Pkg.activate("FinEtoolsHeatDiff")
+Pkg.activate(".")
 Pkg.instantiate()
 
 # The functionality is divided into modules. Here we engage some packages
@@ -84,7 +89,8 @@ Poisson_on_triangle_mesh()
 # heat conduction problem in this time. Clearly the code must run near FORTRAN
 # or C-language speed.
 
-# Now we switch to the environment for the remainder of the tutorial.
+# Now we switch to the standard environment for the remainder 
+# of the tutorial.
 using Pkg
 Pkg.activate(".")
 Pkg.instantiate()
@@ -196,7 +202,7 @@ _b1(t) = t * (1 - t) * (1 - t) * 3
 _b2(t) = (1 - t) * t * t * 3
 _b3(t) = (t ^ 3)
 
-# Documentation writing is easy.
+# Documentation writing is easy. This is the usual way of documenting a function.
 """
     bezier(t, p0::T, p1::T, p2::T, p3::T)  where {T}
 
@@ -221,6 +227,9 @@ methods(bezier)
 # Plotting is supplied with packages. Here we use the package `Winston` to plot a
 # Bezier curve.
 
+# Here we try out some graphics. First we need to install a package.
+import Pkg; Pkg.add("Winston")
+# I'm afraid it has a lot of dependencies. It will take a while to install all. But again, it only needs to be done once.
 using Winston
 t = 0.0: 0.01: 1.0
 a = vcat(p0, p1, p2, p3)
