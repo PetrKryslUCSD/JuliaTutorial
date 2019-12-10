@@ -567,20 +567,22 @@ typeof(5), typeof(5//3)
 # - Abstract types are declared as such and no values of these types can exist
 # (an abstract type cannot define "fields", and hence cannot hold any data).
 abstract type T1 end
-T1()
+T1() # This will fail
 
 # - However, functions can refer to arguments of abstract types.
 function f1(a::T, b) where {T<:T1}
     return a.i * b
 end
-In this case, the assumption is that a subtype of `T1` will have a field `i`.
+# In this case, the assumption is that a subtype of `T1` will have a field `i`.
 
 # - Type that is not abstract is concrete.
 isconcretetype(typeof(1_000))
 isconcretetype(Number)
 # - Abstract types can be subtyped. This type is concrete, and hence the value
 # of this type can exist. Note the field `i`.
-struct CT1 <: T1; i; end
+struct CT1 <: T1;
+	i; 
+end
 a = CT1(4)
 
 # We can pass this value to the function `f1` defined above.
@@ -590,7 +592,7 @@ f1(a, 2)
 supertype(typeof(a))
 # - No type can have a concrete type for its supertype. In other words, concrete
 # types cannot be subtyped.
-struct CT2 <: CT1 end
+struct CT2 <: CT1 end # This will fail: concrete type cannot be subtyped
 # - Types can be parameterized. The type parameter here is `T`.
 struct CT1P{T} <: T1 where {T}
     i::T # field
@@ -676,7 +678,7 @@ fens.xyz
 # The above type definition is for an immutable type: the fields cannot be
 # changed.
 
-fens.xyz = rand(3, 2)
+fens.xyz = rand(3, 2) # This will fail
 
 # In this way we can make the fields of the type mutable.
 
@@ -806,7 +808,7 @@ isrealvector(v)
 
 a2(x::AbstractFloat, y::Int) = 2x + 2y
 a2(5.13, 7)
-a2(7, 5.13)
+a2(7, 5.13) # This will fail: no matching method
 
 # Now we add another method which works of arguments of type `Any`: this covers
 # all possible inputs. Of course, only inputs for which the operation `2x + 2y`
