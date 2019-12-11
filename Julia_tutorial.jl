@@ -17,9 +17,8 @@
 # please remove the folder ./FinEtoolsHeatDiff.jl.
 run(`git clone https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl`)
 # Now we activate and instantiate the environment of this package.
-cd("FinEtoolsHeatDiff.jl")
 using Pkg
-Pkg.activate(".")
+Pkg.activate("./FinEtoolsHeatDiff.jl")
 Pkg.instantiate()
 
 # The functionality is divided into modules. Here we engage some packages
@@ -91,7 +90,6 @@ Poisson_on_triangle_mesh()
 
 # Now we switch to the standard environment for the remainder 
 # of the tutorial.
-cd("..")
 using Pkg
 Pkg.activate(".")
 Pkg.instantiate()
@@ -1417,3 +1415,10 @@ derivative(g, sqrt(2.0))
 # impossible for the function to accept a dual number as argument. Hence we
 # should not type  the argument of the function to be differentiated strictly.
 
+Base.@kwdef struct Par
+	a
+	b
+end
+
+p = Par(a = 1, b = 5.0)
+a, b = p.a, p.b
