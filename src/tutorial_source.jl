@@ -12,9 +12,12 @@
 # ## Quick preview
 
 # The Julia command line introduces a programming environment.
-# Here we install a registered package, directly from github. 
+# Here we install registered packages, directly from github. 
 using Pkg
+Pkg.add("FinEtools")
 Pkg.add("FinEtoolsHeatDiff")
+Pkg.add("BenchmarkTools")
+
 # Now we activate and instantiate the environment of this package.
 
 # The functionality is divided into modules. Here we engage some packages
@@ -56,7 +59,7 @@ function Poisson_on_triangle_mesh()
     F2 = nzebcloadsconductivity(femm, geom, Temp);
 
     fi = ForceIntensity(FFlt[Q]);
-    F1 = distribloads(FEMMBase(IntegDomain(fes, TriRule(1))), geom, Temp, fi, 3);
+    F1 = distribloads(FEMMBase(IntegDomain(fes, TriRule(1))), geom, Temp, fi, 3)
 
     U = K\(F1+F2)
     scattersysvec!(Temp, U[:])
@@ -84,11 +87,7 @@ Poisson_on_triangle_mesh()
 # heat conduction problem in this time. Clearly the code must run near FORTRAN
 # or C-language speed.
 
-# Now we switch to the standard environment for the remainder 
-# of the tutorial.
-using Pkg
-Pkg.activate(".")
-Pkg.instantiate()
+# Continuing the tutorial, we look at Julia with a broad brush.
 
 # To paraphrase [Chris
 # Foster](https://discourse.julialang.org/t/elevator-pitch/29457/14?u=petrkryslucsd),
@@ -352,7 +351,13 @@ one(0)
 # ## Conversions
 
 convert(Int, 5.0)
-Int(5.1) # This will fail: this operation involves loss of data
+try
+    Int(5.1) # This will fail: this operation involves loss of data
+catch
+    println("Conversion of a floating point number could be lossy:\n if we were to lose information, the conversion should fail")
+end
+# This will succeed
+Int(5.0)
 Int(round(5.1))
 
 # ## Functions
@@ -428,7 +433,13 @@ f(3)
 
 # Function with a keyword argument.
 f(x; y) = x / y
-f(1)
+try
+    f(1)
+catch
+    println("The keyword argument y is undefined here")
+end
+# Here we define the keyword argument and things are "fine" (of course, division
+# by zero means we get infinity)
 f(1; y=0)
 
 # Function with only keyword arguments.
@@ -543,7 +554,11 @@ f(x) = 5*x
 # `x` can only be an integer number with 64-bit...
 F(x::Int64) = 5*x
 # ...and hence this will fail.
-F(3.3)
+try
+    F(3.3)
+catch
+    println("There is no method of the function F for a floating point number")
+end
 
 # ### General observations about types in Julia
 
@@ -561,7 +576,11 @@ typeof(5), typeof(5//3)
 # - Abstract types are declared as such and no values of these types can exist
 # (an abstract type cannot define "fields", and hence cannot hold any data).
 abstract type T1 end
-T1() # This will fail
+try
+    T1() # This will fail
+catch
+    println("Instantiation of an abstract type will fail")
+end
 
 # - However, functions can refer to arguments of abstract types.
 function f1(a::T, b) where {T<:T1}
@@ -586,7 +605,11 @@ f1(a, 2)
 supertype(typeof(a))
 # - No type can have a concrete type for its supertype. In other words, concrete
 # types cannot be subtyped.
-struct CT2 <: CT1 end # This will fail: concrete type cannot be subtyped
+try
+    struct CT2 <: CT1 end # This will fail: concrete type cannot be subtyped
+catch
+    println("Concrete types cannot be subtyped")
+end
 # - Types can be parameterized. The type parameter here is `T`.
 struct CT1P{T} <: T1 where {T}
     i::T # field
@@ -672,7 +695,11 @@ fens.xyz
 # The above type definition is for an immutable type: the fields cannot be
 # changed.
 
-fens.xyz = rand(3, 2) # This will fail
+try
+    fens.xyz = rand(3, 2) # This will fail
+catch
+    println("Fields of immutable types cannot be changed")
+end
 
 # In this way we can make the fields of the type mutable.
 
@@ -687,7 +714,7 @@ fens.xyz = rand(3, 2)
 
 # An object with an immutable type may be copied freely by the compiler since it
 # is impossible to distinguish between the original object and a copy. Small
-# immutable object are typically passed on the stack; immutable object rather
+# immutable object are typically passed on the stack; mutable objects rather
 # live on the heap.
 
 
@@ -802,7 +829,11 @@ isrealvector(v)
 
 a2(x::AbstractFloat, y::Int) = 2x + 2y
 a2(5.13, 7)
-a2(7, 5.13) # This will fail: no matching method
+try
+    a2(7, 5.13) # This will fail: no matching method
+catch
+    println("There is no method for integer and float arguments")
+end
 
 # Now we add another method which works of arguments of type `Any`: this covers
 # all possible inputs. Of course, only inputs for which the operation `2x + 2y`
@@ -943,7 +974,11 @@ x = 1.13
 y = 1.13000000005
 tol = 0.01
 @test myapproximateequal(x, y, tol) == true
-@test myapproximateequal(x, y, tol / 10) !== true
+try
+    @test myapproximateequal(x, y, tol / 10) !== true
+catch
+    println("The approximate-equality test will fail")
+end
 @test x ≈ y
 
 # #### linear algebra
@@ -972,7 +1007,9 @@ dot(x, x)
 @show (1 + 1)
 
 x = 0
-@assert x == 1
+# Try the line below (uncomment first): 
+# @assert x == 1
+# The assertion should fail.
 
 a = fill(0.0, 100)
 @inbounds for i in 1:length(a)
@@ -1031,6 +1068,7 @@ end
 
 # Now compile the C code. We will do that under Linux.
 # The next lines and also need to be executed on Linux.
+# Or perhaps with mingw. The issue is: we need a C compiler.
 
 using Libdl
 run(`gcc -shared -fPIC -o bezier.$(Libdl.dlext) bezier.c -lm`)
