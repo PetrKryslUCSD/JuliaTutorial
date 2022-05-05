@@ -1,4 +1,7 @@
-name = "JuliaTutorial2019"
+name = "JuliaTutorial"
 uuid = "790f9590-e644-4e65-8ce7-4bc7d7acae49"
 authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
 version = "0.1.0"
+
+[deps]
+Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"

@@ -12,14 +12,10 @@
 # ## Quick preview
 
 # The Julia command line introduces a programming environment.
-# Here we install an unregistered package, directly from github. Note that
-# this will only succeed the first time. If you wish to repeat this exercise,
-# please remove the folder ./FinEtoolsHeatDiff.jl.
-run(`git clone https://github.com/PetrKryslUCSD/FinEtoolsHeatDiff.jl`)
-# Now we activate and instantiate the environment of this package.
+# Here we install a registered package, directly from github. 
 using Pkg
-Pkg.activate("./FinEtoolsHeatDiff.jl")
-Pkg.instantiate()
+Pkg.add("FinEtoolsHeatDiff")
+# Now we activate and instantiate the environment of this package.
 
 # The functionality is divided into modules. Here we engage some packages
 # written for finite element analysis.
