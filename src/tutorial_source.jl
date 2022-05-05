@@ -223,15 +223,18 @@ methods(bezier)
 # Bezier curve.
 
 # Here we try out some graphics. First we need to install a package.
-# Unfortunately, building GR takes a few minutes.
-import Pkg; Pkg.add("GR")
-using GR
+# Please be patient, building PlotlyJS and its dependencies takes a few minutes.
+import Pkg; Pkg.add("PlotlyJS")
+using PlotlyJS
 t = 0.0: 0.01: 1.0
 a = vcat(p0, p1, p2, p3)
 bx = t -> bezier(t, a)[1]
 by = t -> bezier(t, a)[2]
-p = GR.plot(bx.(t), by.(t))
-display(p)
+tr = scatter(;x = bx.(t), y = by.(t), mode="lines")
+config  = PlotConfig(plotlyServerURL="https://chart-studio.plotly.com", showLink=true)
+layout = Layout(;xaxis=attr(title="x"), yaxis=attr(title="y"), title = "Bezier curve")
+pl = plot([tr,], layout; config = config)
+display(pl);
 
 # Manipulation of Julia code is possible with macros. Macros run at compile
 # time.
