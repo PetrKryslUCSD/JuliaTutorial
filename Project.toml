@@ -4,4 +4,10 @@ authors = ["Petr Krysl <pkrysl@ucsd.edu>"]
 version = "0.1.0"
 
 [deps]
+ArbNumerics = "7e558dbc-694d-5a72-987c-6f4ebed21442"
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+FinEtools = "91bb5406-6c9a-523d-811d-0644c4229550"
+FinEtoolsHeatDiff = "972d1c22-8bdd-11e9-11cf-cdcb7577b041"
+GR = "28b8d3ca-fb5f-59d9-8090-bfdbd6d07a71"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Revise = "295af30f-e4ad-537b-8983-00126c2a3abe"
